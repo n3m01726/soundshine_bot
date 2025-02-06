@@ -41,13 +41,15 @@ intents.members = True
 # Create a bot instance with intents
 bot = commands.Bot(command_prefix="!s", intents=intents)
 
+import asyncio
+
 @bot.event
 async def on_ready():
     ensure_connected.start()
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
 
-@tasks.loop(seconds=60)  # Intervalle de mise à jour à 1 minute pour tester
+@tasks.loop(seconds=60)  # Intervalle de mise à jour à 1 minute
 async def update_status():
     async with aiohttp.ClientSession() as session:
         try:
@@ -65,11 +67,17 @@ async def update_status():
 
                 # Log des chansons et mise à jour du statut Discord
                 logging.info(f"Current song fetched: {current_song}")
+                
+                # Attendre 1 seconde avant de changer le statut
+                await asyncio.sleep(1)
+                
+                # Mise à jour du statut Discord
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f": {current_song}"))
             
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Soundshine Radio"))  # Statut par défaut
+
 
 
 
