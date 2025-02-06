@@ -47,15 +47,13 @@ async def on_ready():
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
 
-@tasks.loop(seconds=60)  # Intervalle de mise à jour à 1 minute
+@tasks.loop(seconds=20)
 async def update_status():
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(JSON_URL, timeout=10) as response:
-                logging.info(f"Response status: {response.status}")  # Vérifie la réponse HTTP
-                response.raise_for_status()  # Déclenche une exception si la réponse n'est pas 200
+                response.raise_for_status()  # Vérifie si l'URL répond
                 data = await response.json()
-                logging.info(f"Data received: {data}")  # Vérifie le contenu des données
 
                 # Vérifie que la clé 'icestats' et 'source' existent dans les données
                 if "icestats" in data and "source" in data["icestats"]:
@@ -65,17 +63,11 @@ async def update_status():
 
                 # Log des chansons et mise à jour du statut Discord
                 logging.info(f"Current song fetched: {current_song}")
-                
-                # Attendre 1 seconde avant de changer le statut
-                await asyncio.sleep(1)
-                
-                # Mise à jour du statut Discord
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f": {current_song}"))
-            
+
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Soundshine Radio"))  # Statut par défaut
-
 
 
 
