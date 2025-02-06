@@ -68,7 +68,6 @@ async def update_status():
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Soundshine Radio"))  # Statut par défaut
-update_status.start()
 
 
 @bot.command()
