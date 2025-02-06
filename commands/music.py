@@ -7,9 +7,7 @@ import requests
 from datetime import datetime
 from bot.utils.stream import check_stream_online
 
-STREAM_URL = "http://soundshineradio.com:3496/stream"
-JSON_URL = "http://soundshineradio.com:3496/status-json.xsl"
-ADMIN_CHANNEL_NAME = "bot-crap"
+
 
 # Commande pour jouer le stream
 @commands.command()
