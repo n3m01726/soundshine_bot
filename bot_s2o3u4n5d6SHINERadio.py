@@ -41,8 +41,6 @@ intents.members = True
 # Create a bot instance with intents
 bot = commands.Bot(command_prefix="!s", intents=intents)
 
-import asyncio
-
 @bot.event
 async def on_ready():
     ensure_connected.start()
