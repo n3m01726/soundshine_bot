@@ -47,7 +47,7 @@ async def on_ready():
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
 
-@tasks.loop(seconds=20)
+@tasks.loop(seconds=60)
 async def update_status():
     async with aiohttp.ClientSession() as session:
         try:
