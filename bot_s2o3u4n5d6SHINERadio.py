@@ -22,8 +22,8 @@ locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')  # Adapter selon ton serveur
 load_dotenv()
 
 # Configuration
-STREAM_URL = "http://soundshineradio.com:3496/stream"
-JSON_URL = "http://soundshineradio.com:3496/status-json.xsl"
+STREAM_URL = "https://stream.soundshineradio.com:8445/stream"
+JSON_URL = "https://stream.soundshineradio.com:8445/status-json.xsl"
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 VOICE_CHANNEL_ID = 1324247709502406748
 ADMIN_CHANNEL_NAME = "bot-crap"
