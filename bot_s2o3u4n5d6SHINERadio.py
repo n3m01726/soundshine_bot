@@ -314,7 +314,7 @@ async def quiz(ctx):
 async def check_scheduled_events():
     """Vérifie si un événement est bloqué à 'Starting Soon' et le démarre."""
     guild = bot.guilds[0]  # Modifier si le bot est dans plusieurs serveurs
-    events = await guild.scheduled_events
+    events = guild.scheduled_events
 
     for event in events:
         if event.status == discord.EventStatus.scheduled:
