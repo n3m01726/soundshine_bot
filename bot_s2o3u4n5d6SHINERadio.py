@@ -43,6 +43,7 @@ bot = commands.Bot(command_prefix="!s", intents=intents)
 
 @bot.event
 async def on_ready():
+    check_scheduled_events.start()  # Lancer la vérification auto
     ensure_connected.start()
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
@@ -308,5 +309,36 @@ async def quiz(ctx):
     
     # Afficher la réponse correcte
     await ctx.send(f"✅ La bonne réponse était {question['answer']} !")
+
+
+
+@tasks.loop(minutes=1)
+async def check_scheduled_events():
+    """Vérifie si un événement est bloqué à 'Starting Soon' et le démarre."""
+    guild = bot.guilds[0]  # Modifier si le bot est dans plusieurs serveurs
+    events = await guild.scheduled_events()
+
+    for event in events:
+        if event.status == discord.EventStatus.scheduled:
+            try:
+                await event.start()
+                logging.info(f"✅ L'événement {event.name} a été lancé automatiquement !")
+            except Exception as e:
+                logging.error(f"❌ Impossible de démarrer {event.name} : {e}")
+
+@bot.command()
+@commands.has_role(ADMIN_ROLE)  # Seuls les admins peuvent exécuter
+async def fixevent(ctx):
+    """Forcer le lancement d'un événement bloqué."""
+    guild = ctx.guild
+    events = await guild.scheduled_events()
+
+    for event in events:
+        if event.status == discord.EventStatus.scheduled:
+            try:
+                await event.start()
+                await ctx.send(f"✅ L'événement **{event.name}** a été lancé !")
+            except Exception as e:
+                await ctx.send(f"❌ Impossible de démarrer **{event.name}** : {e}")
 
 bot.run(BOT_TOKEN)
