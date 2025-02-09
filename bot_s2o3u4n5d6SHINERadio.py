@@ -311,26 +311,24 @@ async def quiz(ctx):
     # Afficher la réponse correcte
     await ctx.send(f"✅ La bonne réponse était {question['answer']} !")
 
-from datetime import datetime, timezone
-
 @tasks.loop(minutes=1)
 async def check_scheduled_events():
-    """Vérifie si un événement est bloqué à 'Starting Soon' et le démarre."""
+    """Vérifie et démarre les événements prévus si l'heure est atteinte."""
     guild = bot.guilds[0]  # Modifier si nécessaire
-    events = guild.scheduled_events
+    events = await guild.fetch_scheduled_events()  # Récupérer les événements
 
     now = datetime.now(timezone.utc)  # Heure actuelle en UTC
 
     for event in events:
         if event.status == discord.EventStatus.scheduled:
-            time_diff = (event.scheduled_start_time - now).total_seconds()
+            time_diff = (event.start_time - now).total_seconds()
             
             # Vérifier si l'événement est censé commencer dans les 5 minutes
             if 0 <= time_diff <= 300:
                 try:
                     await event.start()
-                    logging.info(f"✅ L'événement {event.name} a été lancé automatiquement !")
+                    print(f"✅ L'événement {event.name} a été lancé automatiquement !")
                 except Exception as e:
-                    logging.error(f"❌ Impossible de démarrer {event.name} : {e}")
+                    print(f"❌ Impossible de démarrer {event.name} : {e}")
 
 bot.run(BOT_TOKEN)
