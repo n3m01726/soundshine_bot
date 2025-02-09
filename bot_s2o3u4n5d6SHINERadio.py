@@ -310,8 +310,6 @@ async def quiz(ctx):
     # Afficher la réponse correcte
     await ctx.send(f"✅ La bonne réponse était {question['answer']} !")
 
-
-
 @tasks.loop(minutes=1)
 async def check_scheduled_events():
     """Vérifie si un événement est bloqué à 'Starting Soon' et le démarre."""
@@ -331,7 +329,7 @@ async def check_scheduled_events():
 async def fixevent(ctx):
     """Forcer le lancement d'un événement bloqué."""
     guild = ctx.guild
-    events = await guild.scheduled_events()
+    events = guild.scheduled_events
 
     for event in events:
         if event.status == discord.EventStatus.scheduled:
