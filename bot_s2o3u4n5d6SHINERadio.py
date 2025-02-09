@@ -14,6 +14,7 @@ import asyncio
 import aiohttp
 import discord
 from discord.ui import Select, View
+from datetime import datetime, timezone
 
 sys.stdout.reconfigure(encoding='utf-8')
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')  # Adapter selon ton serveur
@@ -310,33 +311,26 @@ async def quiz(ctx):
     # Afficher la réponse correcte
     await ctx.send(f"✅ La bonne réponse était {question['answer']} !")
 
+from datetime import datetime, timezone
+
 @tasks.loop(minutes=1)
 async def check_scheduled_events():
     """Vérifie si un événement est bloqué à 'Starting Soon' et le démarre."""
-    guild = bot.guilds[0]  # Modifier si le bot est dans plusieurs serveurs
+    guild = bot.guilds[0]  # Modifier si nécessaire
     events = guild.scheduled_events
+
+    now = datetime.now(timezone.utc)  # Heure actuelle en UTC
 
     for event in events:
         if event.status == discord.EventStatus.scheduled:
-            try:
-                await event.start()
-                logging.info(f"✅ L'événement {event.name} a été lancé automatiquement !")
-            except Exception as e:
-                logging.error(f"❌ Impossible de démarrer {event.name} : {e}")
-
-@bot.command()
-@commands.has_role(ADMIN_ROLE)  # Seuls les admins peuvent exécuter
-async def fixevent(ctx):
-    """Forcer le lancement d'un événement bloqué."""
-    guild = ctx.guild
-    events = guild.scheduled_events
-
-    for event in events:
-        if event.status == discord.EventStatus.scheduled:
-            try:
-                await event.start()
-                await ctx.send(f"✅ L'événement **{event.name}** a été lancé !")
-            except Exception as e:
-                await ctx.send(f"❌ Impossible de démarrer **{event.name}** : {e}")
+            time_diff = (event.scheduled_start_time - now).total_seconds()
+            
+            # Vérifier si l'événement est censé commencer dans les 5 minutes
+            if 0 <= time_diff <= 300:
+                try:
+                    await event.start()
+                    logging.info(f"✅ L'événement {event.name} a été lancé automatiquement !")
+                except Exception as e:
+                    logging.error(f"❌ Impossible de démarrer {event.name} : {e}")
 
 bot.run(BOT_TOKEN)
