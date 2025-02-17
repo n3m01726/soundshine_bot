@@ -19,8 +19,8 @@ RADIO_DJ_API = os.getenv("RADIO_DJ_API")
 
 # Discord Configuration
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-VOICE_CHANNEL_ID = int(os.getenv("VOICE_CHANNEL_ID"))
-ADMIN_CHANNEL_ID = int(os.getenv("ADMIN_CHANNEL_ID"))
+VOICE_CHANNEL_ID = os.getenv("VOICE_CHANNEL_ID")
+ADMIN_CHANNEL_ID = os.getenv("ADMIN_CHANNEL_ID")
 BOT_ROLE_NAME = os.getenv("BOT_ROLE_NAME")
 ADMIN_ROLE_ID = int(os.getenv("ADMIN_ROLE_ID"))
 
