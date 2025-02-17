@@ -1,13 +1,18 @@
-# cogs/radio.py
 import discord
 from discord.ext import commands, tasks
 from datetime import datetime
 from utils import StreamUtils
 from config import Config
+import logging
 
 class RadioCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._ready = False  # Add a ready flag
+        
+    async def cog_load(self):
+        # Wait until bot is ready before starting the task
+        await self.bot.wait_until_ready()
         self.update_status.start()
 
     def cog_unload(self):
@@ -15,13 +20,21 @@ class RadioCog(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def update_status(self):
-        current_song = await StreamUtils.get_current_song()
-        await self.bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.listening,
-                name=f": {current_song}"
+        try:
+            current_song = await StreamUtils.get_current_song()
+            await self.bot.change_presence(
+                activity=discord.Activity(
+                    type=discord.ActivityType.listening,
+                    name=f": {current_song}"
+                )
             )
-        )
+        except Exception as e:
+            logging.error(f"Error updating status: {e}")
+
+    @update_status.before_loop
+    async def before_update_status(self):
+        # Wait until bot is ready before starting the loop
+        await self.bot.wait_until_ready()
 
     @commands.command()
     async def play(self, ctx):
