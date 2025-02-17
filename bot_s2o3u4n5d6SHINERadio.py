@@ -1,37 +1,35 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-import locale
 import logging
-import requests
-from datetime import datetime
 from dotenv import load_dotenv
 import discord
+import requests
 from discord.ext import commands, tasks
-from discord.ui import Select, View
+import sys
+import locale
+from datetime import datetime
+import random
+import asyncio
 import aiohttp
-
-# Icecast Configuration
-STREAM_URL = os.getenv("STREAM_URL")
-JSON_URL = os.getenv("JSON_URL")
-RADIO_DJ_API = os.getenv("RADIO_DJ_API")
-
-# Discord Configuration
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-VOICE_CHANNEL_ID = os.getenv("VOICE_CHANNEL_ID")
-ADMIN_CHANNEL_ID = os.getenv("ADMIN_CHANNEL_ID")
-BOT_ROLE_NAME = os.getenv("BOT_ROLE_NAME")
-ADMIN_ROLE_ID = os.getenv("ADMIN_ROLE_ID")
-
-# Other Configuration
-UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_API")
+import discord
+from discord.ui import Select, View
+from datetime import datetime, timezone
 
 sys.stdout.reconfigure(encoding='utf-8')
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')  # Adapter selon ton serveur
 
 # Load environment variables
 load_dotenv()
+
+# Configuration
+STREAM_URL = "https://stream.soundshineradio.com:8445/stream"
+JSON_URL = "https://stream.soundshineradio.com:8445/status-json.xsl"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+VOICE_CHANNEL_ID = 1324247709502406748
+ADMIN_CHANNEL_NAME = "bot-crap"
+BOT_ROLE_NAME = "soundSHINE Radio"
+ADMIN_ROLE = "🛠️ Admin"
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -46,11 +44,12 @@ bot = commands.Bot(command_prefix="!s", intents=intents)
 
 @bot.event
 async def on_ready():
+    check_scheduled_events.start()  # Lancer la vérification auto
     ensure_connected.start()
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
 
-@tasks.loop(seconds=20)
+@tasks.loop(seconds=60)
 async def update_status():
     async with aiohttp.ClientSession() as session:
         try:
@@ -71,6 +70,8 @@ async def update_status():
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Soundshine Radio"))  # Statut par défaut
+
+
 
 @bot.command()
 async def play(ctx):
@@ -147,8 +148,8 @@ async def check_stream_online():
 @bot.command()
 async def stop(ctx):
     """Command to stop the stream (only available in the #admin channel)."""
-    if ctx.channel.id != int(ADMIN_CHANNEL_ID):
-        await ctx.send(f"This command can only be used in the <#{ADMIN_CHANNEL_ID}> channel.")
+    if ctx.channel.name != ADMIN_CHANNEL_NAME:
+        await ctx.send(f"This command can only be used in the #{ADMIN_CHANNEL_NAME} channel.")
         return
 
     if ctx.voice_client:
@@ -177,7 +178,7 @@ async def ensure_connected():
         await voice_channel.connect()
 
 @bot.command()
-@commands.has_role(ADMIN_ROLE_ID)
+@commands.has_role(ADMIN_ROLE)
 async def stats(ctx):
     """Displays the current number of listeners."""
     try:
@@ -244,6 +245,9 @@ async def schedule(ctx):
         await ctx.send("❌ Impossible de lire la programmation.")
         print(f"Erreur : {e}")
 
+# Récupérer la clé API Unsplash
+UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_API")
+
 @bot.command()
 async def getwall(ctx):
     """Commande pour récupérer une photo aléatoire de Unsplash"""
@@ -256,5 +260,75 @@ async def getwall(ctx):
     except requests.RequestException as e:
         await ctx.send("Erreur lors de la récupération de l'image.")
         logging.error(f"Error fetching photo: {e}")
+
+@bot.event
+async def on_message(message):
+    # Empêche le bot de répondre à ses propres messages
+    if message.author == bot.user:
+        return
+
+    # Vérifie si le message est en privé et contient "scan"
+    if isinstance(message.channel, discord.DMChannel) and message.content.lower() == "scan":
+        LOG_CHANNEL_ID = 1292526077281046600  # Remplace avec l'ID du canal voulu
+
+        log_channel = bot.get_channel(LOG_CHANNEL_ID)
+
+        if log_channel:
+            await log_channel.send("--== Scan des musiques en cours ==--")
+            await message.channel.send("Le message a bien été envoyé sur le serveur ! ✅")
+
+    # Continue de traiter les autres commandes
+    await bot.process_commands(message)
+
+
+# Liste de questions (ajoute-en plus si tu veux)
+questions = [
+    {"question": "Quel est le plus grand océan du monde ?", "choices": ["Atlantique", "Pacifique", "Indien", "Arctique"], "answer": "🇧"},
+    {"question": "Qui a peint La Joconde ?", "choices": ["Michel-Ange", "Léonard de Vinci", "Raphaël", "Van Gogh"], "answer": "🇧"},
+    {"question": "Combien y a-t-il de continents sur Terre ?", "choices": ["4", "5", "6", "7"], "answer": "🇩"}
+]
+
+@bot.command()
+async def quiz(ctx):
+    """Lance une question de quiz en format QCM."""
+    question = random.choice(questions)
+    choices_emojis = ["🇦", "🇧", "🇨", "🇩"]
+    
+    # Construire le message
+    question_text = f"**{question['question']}**\n\n"
+    for emoji, choice in zip(choices_emojis, question["choices"]):
+        question_text += f"{emoji} {choice}\n"
+    
+    quiz_message = await ctx.send(question_text)
+    
+    # Ajouter les réactions
+    for emoji in choices_emojis:
+        await quiz_message.add_reaction(emoji)
+    
+    # Attendre 10 secondes avant de donner la réponse
+    await asyncio.sleep(10)
+    
+    # Afficher la réponse correcte
+    await ctx.send(f"✅ La bonne réponse était {question['answer']} !")
+
+@tasks.loop(minutes=1)
+async def check_scheduled_events():
+    """Vérifie et démarre les événements prévus si l'heure est atteinte."""
+    guild = bot.guilds[0]  # Modifier si nécessaire
+    events = await guild.fetch_scheduled_events()  # Récupérer les événements
+
+    now = datetime.now(timezone.utc)  # Heure actuelle en UTC
+
+    for event in events:
+        if event.status == discord.EventStatus.scheduled:
+            time_diff = (event.start_time - now).total_seconds()
+            
+            # Vérifier si l'événement est censé commencer dans les 5 minutes
+            if 0 <= time_diff <= 300:
+                try:
+                    await event.start()
+                    print(f"✅ L'événement {event.name} a été lancé automatiquement !")
+                except Exception as e:
+                    print(f"❌ Impossible de démarrer {event.name} : {e}")
 
 bot.run(BOT_TOKEN)
