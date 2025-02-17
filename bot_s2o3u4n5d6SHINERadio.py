@@ -22,7 +22,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 VOICE_CHANNEL_ID = os.getenv("VOICE_CHANNEL_ID")
 ADMIN_CHANNEL_ID = os.getenv("ADMIN_CHANNEL_ID")
 BOT_ROLE_NAME = os.getenv("BOT_ROLE_NAME")
-ADMIN_ROLE_ID = int(os.getenv("ADMIN_ROLE_ID"))
+ADMIN_ROLE_ID = os.getenv("ADMIN_ROLE_ID")
 
 # Other Configuration
 UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_API")
