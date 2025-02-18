@@ -1,6 +1,8 @@
-# config.py
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger('bot')
 
 load_dotenv()
 
@@ -14,3 +16,10 @@ class Config:
     ADMIN_ROLE = "🛠️ Admin"
     UNSPLASH_API_KEY = os.getenv("UNSPLASH_API")
     LOG_CHANNEL_ID = 1292526077281046600
+
+    @classmethod
+    def validate(cls):
+        if not cls.BOT_TOKEN:
+            logger.error("BOT_TOKEN not found in environment variables")
+            raise ValueError("BOT_TOKEN not found")
+        logger.info("Config validation successful")
