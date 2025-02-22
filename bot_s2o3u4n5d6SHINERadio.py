@@ -49,7 +49,7 @@ async def on_ready():
     update_status.start()
     logging.info(f"{bot.user.name} is online!")
 
-@tasks.loop(seconds=60)
+@tasks.loop(seconds=25)
 async def update_status():
     async with aiohttp.ClientSession() as session:
         try:
@@ -65,7 +65,7 @@ async def update_status():
 
                 # Log des chansons et mise à jour du statut Discord
                 logging.info(f"Current song fetched: {current_song}")
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f": {current_song}"))
+                await bot.change_presence(activity=discord.Activity(name=f"📀 {current_song}"))
 
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
