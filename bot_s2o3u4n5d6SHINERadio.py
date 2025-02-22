@@ -65,7 +65,7 @@ async def update_status():
 
                 # Log des chansons et mise à jour du statut Discord
                 logging.info(f"Current song fetched: {current_song}")
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f": {current_song}"))
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f"📀 {current_song}"))
 
         except aiohttp.ClientError as e:
             logging.error(f"Error fetching metadata or updating status: {e}")
