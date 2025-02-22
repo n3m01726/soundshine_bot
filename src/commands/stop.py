@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import logging
 
-ADMIN_CHANNEL_ID = int(os.getenv("ADMIN_CHANNEL_ID"))
+ADMIN_CHANNEL_ID = int(os.getenv("ADMINBOT_CHANNEL_ID"))
 
 class StopCommand(commands.Cog):
     def __init__(self, bot):
