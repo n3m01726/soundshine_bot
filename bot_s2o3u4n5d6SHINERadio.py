@@ -65,8 +65,7 @@ async def update_status():
 
                 # Log des chansons et mise à jour du statut Discord
                 logging.info(f"Current song fetched: {current_song}")
-
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.custom, name="custom", state="📀 {current_song}"))
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.custom, name="custom", state=f"📀 {current_song}"))
 
 
 
