@@ -67,7 +67,7 @@ async def update_status():
                 logging.info(f"Current song fetched: {current_song}")
 
                 game = "with the API"
-                await client.change_presence(status=discord.Status.idle, activity=game)
+                await bot.change_presence(status=discord.Status.idle, activity=game)
 
 
 
